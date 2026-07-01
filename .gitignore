@@ -1,0 +1,54 @@
+# OS / editor noise
+.DS_Store
+__MACOSX/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Secrets and local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Runtime data
+*.log
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+paper_api/*.db
+paper_api/*.db-*
+paper_api/durable_state/
+paper_api/runtime_state/
+
+# Frontend
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo
+web/.vite/
+
+# Local archives
+*.zip
+*.tar
+*.tar.gz
+docs

@@ -1,0 +1,41 @@
+{
+  "version": "2026-04-10",
+  "venue": "bybit",
+  "category": "linear",
+  "account_type": "UNIFIED",
+  "balance_coin": "USDT",
+  "position_mode": "one_way",
+  "margin_mode": "isolated",
+  "risk": {
+    "risk_per_trade_pct": 0.005,
+    "max_daily_loss_pct": 0.02,
+    "min_rr": 2.0,
+    "max_open_positions": 1,
+    "max_margin_fraction_of_equity": 0.5
+  },
+  "execution": {
+    "default_order_type": "Limit",
+    "allow_market_orders": false,
+    "default_time_in_force": "GTC",
+    "default_leverage": 3,
+    "max_leverage": 5,
+    "auto_set_leverage": true,
+    "require_stop_loss": true,
+    "require_take_profit": true,
+    "partial_take_profit": false,
+    "tp_trigger_by": "LastPrice",
+    "sl_trigger_by": "LastPrice"
+  },
+  "instruments": {
+    "BTCUSDT": {
+      "default_leverage": 3,
+      "max_leverage": 5,
+      "min_rr": 2.0
+    },
+    "ETHUSDT": {
+      "default_leverage": 3,
+      "max_leverage": 5,
+      "min_rr": 2.0
+    }
+  }
+}

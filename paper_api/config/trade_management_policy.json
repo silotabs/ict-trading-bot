@@ -1,0 +1,22 @@
+{
+  "version": "2026-04-10",
+  "mode": "bybit_testnet_trade_management",
+  "enabled": false,
+  "require_private_stream": true,
+  "max_actions_per_cycle": 1,
+  "cooldown_seconds_per_proposal": 60,
+  "working_orders": {
+    "auto_cancel_stale": false,
+    "stale_after_seconds": 1800
+  },
+  "open_positions": {
+    "break_even": {
+      "enabled": false,
+      "trigger_rr": 1.0,
+      "buffer_ticks": 2
+    },
+    "trailing_stop": {
+      "enabled": false
+    }
+  }
+}

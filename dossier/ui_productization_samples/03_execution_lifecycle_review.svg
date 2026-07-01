@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">Execution lifecycle and review drawer mockup</title>
+  <desc id="desc">Enterprise product mockup showing a contextual review drawer with signal verdict, evidence, lifecycle, risk checks, and raw details hidden behind tabs.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b121b"/>
+      <stop offset="1" stop-color="#070b11"/>
+    </linearGradient>
+    <style>
+      .surface { fill:#101821; stroke:#273746; stroke-width:1; }
+      .surface2 { fill:#131e29; stroke:#2e4050; stroke-width:1; }
+      .text { fill:#edf3f8; font-family:Inter, Arial, sans-serif; }
+      .muted { fill:#92a4b7; font-family:Inter, Arial, sans-serif; }
+      .label { fill:#9badbf; font-family:Inter, Arial, sans-serif; font-size:14px; font-weight:700; }
+      .small { fill:#8ea0b4; font-family:Inter, Arial, sans-serif; font-size:12px; }
+      .good { fill:#54d7a6; }
+      .warn { fill:#e6bd65; }
+      .danger { fill:#ef7184; }
+      .cyan { fill:#65cde8; }
+      .line { stroke:#314252; stroke-width:2; }
+    </style>
+  </defs>
+  <rect width="1400" height="900" fill="url(#bg)"/>
+
+  <g transform="translate(44 34)">
+    <text x="0" y="30" class="text" font-size="28" font-weight="850">Contextual Review Deck - product sample</text>
+    <text x="0" y="55" class="muted" font-size="15">The drawer becomes focused investigation, not a second dashboard.</text>
+  </g>
+
+  <g transform="translate(44 94)">
+    <rect width="820" height="790" rx="14" class="surface"/>
+    <g transform="translate(26 26)">
+      <text x="0" y="23" class="text" font-size="22" font-weight="850">Execution lifecycle</text>
+      <text x="0" y="47" class="small">A single chain from signal trace to exchange status.</text>
+    </g>
+
+    <g transform="translate(78 118)">
+      <line x1="36" y1="50" x2="676" y2="50" class="line"/>
+
+      <g transform="translate(0 0)">
+        <circle cx="36" cy="50" r="24" fill="#142720" stroke="#54d7a6" stroke-width="2"/>
+        <text x="28" y="56" class="good" font-size="18" font-weight="850" font-family="Inter, Arial">1</text>
+        <text x="0" y="100" class="text" font-size="15" font-weight="800">Signal trace</text>
+        <text x="-8" y="122" class="small">Executable</text>
+      </g>
+      <g transform="translate(160 0)">
+        <circle cx="36" cy="50" r="24" fill="#142720" stroke="#54d7a6" stroke-width="2"/>
+        <text x="28" y="56" class="good" font-size="18" font-weight="850" font-family="Inter, Arial">2</text>
+        <text x="-6" y="100" class="text" font-size="15" font-weight="800">Intent</text>
+        <text x="-12" y="122" class="small">Created</text>
+      </g>
+      <g transform="translate(320 0)">
+        <circle cx="36" cy="50" r="24" fill="#1f1b16" stroke="#e6bd65" stroke-width="2"/>
+        <text x="28" y="56" class="warn" font-size="18" font-weight="850" font-family="Inter, Arial">3</text>
+        <text x="-8" y="100" class="text" font-size="15" font-weight="800">Risk check</text>
+        <text x="-2" y="122" class="small">Pending</text>
+      </g>
+      <g transform="translate(480 0)">
+        <circle cx="36" cy="50" r="24" fill="#131e29" stroke="#586878" stroke-width="2"/>
+        <text x="28" y="56" class="muted" font-size="18" font-weight="850" font-family="Inter, Arial">4</text>
+        <text x="-8" y="100" class="text" font-size="15" font-weight="800">Proposal</text>
+        <text x="-6" y="122" class="small">Not sent</text>
+      </g>
+      <g transform="translate(640 0)">
+        <circle cx="36" cy="50" r="24" fill="#131e29" stroke="#586878" stroke-width="2"/>
+        <text x="28" y="56" class="muted" font-size="18" font-weight="850" font-family="Inter, Arial">5</text>
+        <text x="-8" y="100" class="text" font-size="15" font-weight="800">Exchange</text>
+        <text x="-4" y="122" class="small">No order</text>
+      </g>
+    </g>
+
+    <g transform="translate(26 304)">
+      <rect width="768" height="84" rx="10" fill="#121f2b" stroke="#315466"/>
+      <text x="22" y="31" class="label">Selected plan</text>
+      <text x="22" y="58" class="text" font-size="19" font-weight="850">BTCUSDT long - FVG retest after 15m MSS</text>
+      <text x="572" y="31" class="small">State</text>
+      <text x="572" y="58" class="warn" font-size="18" font-weight="850">Risk pending</text>
+    </g>
+
+    <g transform="translate(26 420)">
+      <text x="0" y="0" class="label">Risk and controls</text>
+      <g transform="translate(0 22)">
+        <rect width="246" height="90" rx="10" class="surface2"/>
+        <text x="18" y="30" class="small">Order size</text>
+        <text x="18" y="60" class="good" font-size="24" font-weight="850" font-family="Inter, Arial">Allowed</text>
+      </g>
+      <g transform="translate(264 22)">
+        <rect width="246" height="90" rx="10" class="surface2"/>
+        <text x="18" y="30" class="small">Daily loss</text>
+        <text x="18" y="60" class="good" font-size="24" font-weight="850" font-family="Inter, Arial">Within limit</text>
+      </g>
+      <g transform="translate(528 22)">
+        <rect width="240" height="90" rx="10" class="surface2"/>
+        <text x="18" y="30" class="small">Kill switch</text>
+        <text x="18" y="60" class="good" font-size="24" font-weight="850" font-family="Inter, Arial">Clear</text>
+      </g>
+    </g>
+
+    <g transform="translate(26 570)">
+      <text x="0" y="0" class="label">Activity log</text>
+      <g transform="translate(0 24)">
+        <rect width="768" height="54" rx="8" class="surface2"/>
+        <text x="18" y="24" class="text" font-size="15" font-weight="700">Signal trace indexed</text>
+        <text x="18" y="42" class="small">opportunity: ready_for_review - blocker: no blocker</text>
+        <text x="650" y="33" class="small">2m ago</text>
+      </g>
+      <g transform="translate(0 88)">
+        <rect width="768" height="54" rx="8" class="surface2"/>
+        <text x="18" y="24" class="text" font-size="15" font-weight="700">Execution intent created</text>
+        <text x="18" y="42" class="small">linked to proposal P-10482</text>
+        <text x="650" y="33" class="small">1m ago</text>
+      </g>
+      <g transform="translate(0 152)">
+        <rect width="768" height="54" rx="8" class="surface2"/>
+        <text x="18" y="24" class="text" font-size="15" font-weight="700">Risk check requested</text>
+        <text x="18" y="42" class="small">awaiting latest exposure snapshot</text>
+        <text x="650" y="33" class="small">now</text>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(900 94)">
+    <rect width="356" height="790" rx="14" fill="#0f1722" stroke="#2b3b49"/>
+    <g transform="translate(24 26)">
+      <text x="0" y="24" class="text" font-size="22" font-weight="850">Review Deck</text>
+      <text x="0" y="47" class="small">BTCUSDT - selected event</text>
+    </g>
+
+    <g transform="translate(24 94)">
+      <rect x="0" y="0" width="308" height="38" rx="8" fill="#172333" stroke="#304558"/>
+      <text x="24" y="25" class="cyan" font-size="14" font-weight="850" font-family="Inter, Arial">Summary</text>
+      <text x="116" y="25" class="muted" font-size="14" font-weight="700" font-family="Inter, Arial">Evidence</text>
+      <text x="216" y="25" class="muted" font-size="14" font-weight="700" font-family="Inter, Arial">Raw</text>
+    </g>
+
+    <g transform="translate(24 164)">
+      <text x="0" y="0" class="label">Verdict</text>
+      <rect x="0" y="18" width="308" height="96" rx="10" fill="#102330" stroke="#38596c"/>
+      <text x="18" y="54" class="cyan" font-size="26" font-weight="850" font-family="Inter, Arial">Plan ready</text>
+      <text x="18" y="80" class="small">Execution remains paused until risk allows.</text>
+    </g>
+
+    <g transform="translate(24 302)">
+      <text x="0" y="0" class="label">Evidence</text>
+      <g transform="translate(0 18)">
+        <rect width="308" height="50" rx="8" class="surface2"/>
+        <circle cx="20" cy="25" r="6" fill="#54d7a6"/>
+        <text x="38" y="30" class="text" font-size="14" font-weight="700">4H raid confirmed</text>
+      </g>
+      <g transform="translate(0 78)">
+        <rect width="308" height="50" rx="8" class="surface2"/>
+        <circle cx="20" cy="25" r="6" fill="#54d7a6"/>
+        <text x="38" y="30" class="text" font-size="14" font-weight="700">15m MSS confirmed</text>
+      </g>
+      <g transform="translate(0 138)">
+        <rect width="308" height="50" rx="8" class="surface2"/>
+        <circle cx="20" cy="25" r="6" fill="#54d7a6"/>
+        <text x="38" y="30" class="text" font-size="14" font-weight="700">5m FVG respected</text>
+      </g>
+    </g>
+
+    <g transform="translate(24 528)">
+      <text x="0" y="0" class="label">Execution controls</text>
+      <rect x="0" y="20" width="308" height="46" rx="8" fill="#142720" stroke="#2c5c49"/>
+      <text x="82" y="50" class="good" font-size="15" font-weight="850" font-family="Inter, Arial">Submit linked plan</text>
+      <rect x="0" y="80" width="148" height="44" rx="8" fill="#172333" stroke="#304558"/>
+      <text x="43" y="108" class="text" font-size="14" font-weight="750" font-family="Inter, Arial">Sync</text>
+      <rect x="160" y="80" width="148" height="44" rx="8" fill="#20181b" stroke="#62323c"/>
+      <text x="207" y="108" class="danger" font-size="14" font-weight="750" font-family="Inter, Arial">Cancel</text>
+    </g>
+
+    <g transform="translate(24 694)">
+      <text x="0" y="0" class="label">Raw details</text>
+      <text x="0" y="25" class="small">Hidden until expanded:</text>
+      <text x="0" y="47" class="small">trace_id, proposal_id, scan_signature,</text>
+      <text x="0" y="69" class="small">raw backend enum values.</text>
+    </g>
+  </g>
+</svg>

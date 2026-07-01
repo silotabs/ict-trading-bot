@@ -1,0 +1,4 @@
+interface:
+  display_name: "ICT Trading Analyst"
+  short_description: "Analyze ICT setups safely"
+  default_prompt: "Use $ict-trading-analyst to analyze a TradingView chart, screenshot, or alert with the local dossier and house spec, then return a structured ICT setup read and stay analysis-only."

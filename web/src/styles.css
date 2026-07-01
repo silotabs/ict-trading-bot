@@ -1,0 +1,232 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #e5edf7;
+  background: #070a0f;
+  --control-bg: #070a0f;
+  --control-shell: #090e14;
+  --control-panel: #0e141b;
+  --control-panel-2: #111922;
+  --control-panel-3: #141e29;
+  --control-line: #243241;
+  --control-line-soft: #1a2531;
+  --control-text: #ecf2f8;
+  --control-muted: #8c9bad;
+  --control-faint: #627183;
+  --control-green: #62d2a2;
+  --control-amber: #d7b46a;
+  --control-red: #e27584;
+  --control-blue: #73c7e8;
+  --control-radius: 8px;
+  font-family: "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(60, 89, 117, 0.18), transparent 34%),
+    var(--control-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, transparent 20%);
+  opacity: 0.42;
+}
+
+@keyframes terminalPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform: scale(1.08);
+    opacity: 0.96;
+  }
+}
+
+@layer components {
+  .terminal-shell {
+    @apply rounded-lg border border-slate-800 bg-[#0e141b];
+  }
+
+  .terminal-panel {
+    @apply rounded-lg border border-slate-800 bg-[#0e141b];
+  }
+
+  .terminal-subpanel {
+    @apply rounded-md border border-slate-800 bg-[#111922];
+  }
+
+  .terminal-kicker {
+    @apply text-[11px] font-semibold tracking-[0.04em] text-slate-500;
+  }
+
+  .terminal-heading {
+    @apply text-[13px] font-semibold tracking-[0.01em] text-slate-200;
+  }
+
+  .terminal-live-dot {
+    animation: terminalPulse 1.5s ease-in-out infinite;
+  }
+
+  .control-room-sidebar {
+    @apply flex w-[76px] shrink-0 flex-col items-center gap-3 border-y border-l border-slate-800 bg-[#080d13] px-3 py-4;
+  }
+
+  .control-room-brand {
+    @apply mb-3 grid h-11 w-11 place-items-center rounded-lg border border-cyan-500/30 bg-[#101a25] text-[13px] font-extrabold text-cyan-200;
+  }
+
+  .control-room-nav-button {
+    @apply grid h-12 w-12 place-items-center rounded-lg border border-transparent text-[10px] font-bold tracking-[0.02em] text-slate-500 transition hover:border-slate-700 hover:bg-[#111922] hover:text-slate-200;
+  }
+
+  .control-room-nav-button.active {
+    @apply border-slate-700 bg-[#111922] text-slate-100;
+  }
+
+  .control-room-panel {
+    @apply rounded-lg border border-slate-800 bg-[#0e141b];
+  }
+
+  .control-room-chip {
+    @apply inline-flex h-[30px] items-center rounded-full border border-slate-700 bg-[#0f1720] px-3 text-[12px] font-semibold text-slate-400 transition hover:border-slate-600 hover:text-slate-100;
+  }
+
+  .control-room-chip.active {
+    @apply border-cyan-400/30 bg-cyan-400/10 text-cyan-200;
+  }
+
+  .control-room-chip.good {
+    @apply border-emerald-400/25 bg-emerald-500/10 text-emerald-200;
+  }
+
+  .control-room-chip.warn {
+    @apply border-amber-400/25 bg-amber-500/10 text-amber-100;
+  }
+
+  .control-room-chip.danger {
+    @apply border-rose-400/30 bg-rose-500/10 text-rose-200;
+  }
+
+  .control-room-button {
+    @apply inline-flex h-[34px] items-center justify-center rounded-md border border-slate-700 bg-[#121b25] px-3 text-[12px] font-bold text-slate-100 transition hover:border-slate-600 hover:bg-[#172231];
+  }
+
+  .control-room-button.good {
+    @apply border-emerald-400/30 bg-emerald-500/10 text-emerald-200 hover:border-emerald-300/40;
+  }
+
+  .control-room-button.danger {
+    @apply border-rose-400/35 bg-rose-500/10 text-rose-200 hover:border-rose-300/45;
+  }
+
+  .control-room-mini-button {
+    @apply rounded-md border border-slate-700 bg-[#121b25] px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:border-slate-600 hover:text-slate-100;
+  }
+
+  .control-room-mini-button.danger {
+    @apply border-rose-500/25 bg-rose-500/10 text-rose-200;
+  }
+
+  .control-room-alert {
+    @apply rounded-lg border px-4 py-3 text-sm;
+  }
+
+  .control-room-alert.good {
+    @apply border-emerald-500/25 bg-emerald-500/10 text-emerald-100;
+  }
+
+  .control-room-alert.warn {
+    @apply border-amber-500/25 bg-amber-500/10 text-amber-100;
+  }
+
+  .control-room-alert.danger {
+    @apply border-rose-500/25 bg-rose-500/10 text-rose-100;
+  }
+
+  .control-room-alert.info {
+    @apply border-cyan-500/25 bg-cyan-500/10 text-cyan-100;
+  }
+
+  .control-room-decision-cell {
+    @apply min-h-[96px] border-r border-slate-800 px-4 py-4;
+  }
+
+  .control-room-eyebrow {
+    @apply mb-2 text-[11px] font-bold tracking-[0.04em] text-slate-500;
+  }
+
+  .control-room-metric {
+    @apply m-0 text-[23px] font-extrabold leading-tight tracking-[-0.025em] text-slate-50;
+  }
+
+  .control-room-metric.small {
+    @apply text-[17px] tracking-[-0.01em];
+  }
+
+  .control-room-copy {
+    @apply mt-2 text-[12px] leading-5 text-slate-500;
+  }
+
+  .control-room-segmented {
+    @apply inline-flex rounded-md border border-slate-800 bg-[#0b1118] p-1;
+  }
+
+  .control-room-segment {
+    @apply h-7 min-w-[44px] rounded px-2 text-[12px] font-bold text-slate-500 transition hover:text-slate-200;
+  }
+
+  .control-room-segment.active {
+    @apply bg-[#182434] text-slate-100;
+  }
+
+  .control-room-risk-tile {
+    @apply rounded-md border border-slate-800 bg-[#0b121a] p-3;
+  }
+
+  .control-room-risk-tile span {
+    @apply block text-[11px] text-slate-500;
+  }
+
+  .control-room-risk-tile strong {
+    @apply mt-2 block text-[14px] font-bold;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #071019;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #162332;
+  border-radius: 999px;
+  border: 2px solid #071019;
+}

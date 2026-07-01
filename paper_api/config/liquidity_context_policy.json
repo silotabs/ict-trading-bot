@@ -1,0 +1,9 @@
+{
+  "version": "2026-04-18",
+  "prior_day_timezone": "UTC",
+  "asian_range_timezone": "UTC",
+  "asian_range_start_hour": 0,
+  "asian_range_end_hour": 6,
+  "asian_range_status": "starter_assumption",
+  "equal_level_tolerance_fraction": 0.0008
+}

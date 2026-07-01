@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trading-paper-stack"
+version = "0.1.0"
+description = "Conservative ICT paper-trading daemon, API, and operator tooling."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["paper_api*"]
+
+[tool.setuptools.package-data]
+paper_api = ["config/*.json"]

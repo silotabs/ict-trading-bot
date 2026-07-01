@@ -1,0 +1,16 @@
+{
+  "version": "2026-04-12",
+  "concept_id": "concept-1",
+  "minimum_evidence": {
+    "recent_scan_count": 20,
+    "recent_proposal_count": 2,
+    "recent_action_count": 2,
+    "recent_execution_state_count": 2
+  },
+  "quality_thresholds": {
+    "minimum_candidate_ratio": 0.05,
+    "review_blocker_ratio": 0.6,
+    "severe_blocker_ratio": 0.75,
+    "severe_cross_market_gap": 0.5
+  }
+}

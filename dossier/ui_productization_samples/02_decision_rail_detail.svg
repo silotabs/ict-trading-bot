@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Decision rail detail mockup</title>
+  <desc id="desc">A focused enterprise decision rail showing signal posture, setup checklist, risk state, blocker summary, and next action.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b121b"/>
+      <stop offset="1" stop-color="#070b11"/>
+    </linearGradient>
+    <style>
+      .surface { fill:#101821; stroke:#273746; stroke-width:1; }
+      .surface2 { fill:#131e29; stroke:#2e4050; stroke-width:1; }
+      .text { fill:#edf3f8; font-family:Inter, Arial, sans-serif; }
+      .muted { fill:#92a4b7; font-family:Inter, Arial, sans-serif; }
+      .label { fill:#9badbf; font-family:Inter, Arial, sans-serif; font-size:14px; font-weight:700; }
+      .small { fill:#8ea0b4; font-family:Inter, Arial, sans-serif; font-size:12px; }
+      .good { fill:#54d7a6; }
+      .warn { fill:#e6bd65; }
+      .danger { fill:#ef7184; }
+      .cyan { fill:#65cde8; }
+    </style>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+
+  <g transform="translate(48 36)">
+    <text x="0" y="28" class="text" font-size="28" font-weight="800">Decision Rail - product sample</text>
+    <text x="0" y="52" class="muted" font-size="15">The right rail answers the operator question first, then allows drill-down.</text>
+  </g>
+
+  <g transform="translate(48 96)">
+    <rect x="0" y="0" width="684" height="760" rx="14" class="surface"/>
+    <g transform="translate(28 28)">
+      <text x="0" y="20" class="text" font-size="22" font-weight="800">BTCUSDT</text>
+      <text x="0" y="43" class="small">Paper mode - London open - 5m execution</text>
+      <rect x="460" y="0" width="158" height="34" rx="17" fill="#142720" stroke="#2c5c49"/>
+      <circle cx="480" cy="17" r="6" fill="#54d7a6"/>
+      <text x="494" y="22" class="text" font-size="13" font-weight="700">Stream healthy</text>
+    </g>
+
+    <g transform="translate(28 96)">
+      <rect width="628" height="118" rx="12" fill="#201c17" stroke="#5d4828"/>
+      <text x="22" y="32" class="label">Operator signal</text>
+      <text x="22" y="78" class="warn" font-size="38" font-family="Inter, Arial" font-weight="850">Collecting evidence</text>
+      <line x1="386" y1="22" x2="386" y2="96" stroke="#3b4250"/>
+      <text x="410" y="34" class="small">Executable state</text>
+      <text x="410" y="61" class="text" font-size="18" font-weight="800">Not executable</text>
+      <text x="410" y="85" class="small">Raw: no_paper_trade</text>
+    </g>
+
+    <g transform="translate(28 246)">
+      <text x="0" y="0" class="label">Primary blocker</text>
+      <rect x="0" y="18" width="628" height="74" rx="10" fill="#171d27" stroke="#3b4551"/>
+      <text x="22" y="48" class="text" font-size="19" font-weight="800">15m MSS has not confirmed the 4H read.</text>
+      <text x="22" y="70" class="small">The system can keep sampling, but cannot create a review-ready plan yet.</text>
+    </g>
+
+    <g transform="translate(28 364)">
+      <text x="0" y="0" class="label">Setup checklist</text>
+      <g transform="translate(0 20)">
+        <rect width="628" height="52" rx="8" class="surface2"/>
+        <circle cx="24" cy="26" r="8" fill="#54d7a6"/>
+        <text x="48" y="31" class="text" font-size="16" font-weight="700">4H liquidity and dealing range mapped</text>
+        <text x="544" y="31" class="good" font-size="14" font-weight="850">PASS</text>
+      </g>
+      <g transform="translate(0 82)">
+        <rect width="628" height="52" rx="8" class="surface2"/>
+        <circle cx="24" cy="26" r="8" fill="#e6bd65"/>
+        <text x="48" y="31" class="text" font-size="16" font-weight="700">15m market structure shift</text>
+        <text x="544" y="31" class="warn" font-size="14" font-weight="850">WAIT</text>
+      </g>
+      <g transform="translate(0 144)">
+        <rect width="628" height="52" rx="8" class="surface2"/>
+        <circle cx="24" cy="26" r="8" fill="#54d7a6"/>
+        <text x="48" y="31" class="text" font-size="16" font-weight="700">5m displacement and PD array present</text>
+        <text x="544" y="31" class="good" font-size="14" font-weight="850">PASS</text>
+      </g>
+      <g transform="translate(0 206)">
+        <rect width="628" height="52" rx="8" class="surface2"/>
+        <circle cx="24" cy="26" r="8" fill="#8ea0b4"/>
+        <text x="48" y="31" class="text" font-size="16" font-weight="700">Risk check and execution intent</text>
+        <text x="516" y="31" class="muted" font-size="14" font-weight="850">NOT RUN</text>
+      </g>
+    </g>
+
+    <g transform="translate(28 662)">
+      <rect width="628" height="78" rx="10" fill="#102330" stroke="#38596c"/>
+      <text x="22" y="29" class="label">Next action</text>
+      <text x="22" y="55" class="cyan" font-size="18" font-family="Inter, Arial" font-weight="850">Wait for a closed 15m candle to confirm or invalidate MSS.</text>
+    </g>
+  </g>
+
+  <g transform="translate(780 96)">
+    <rect width="372" height="760" rx="14" class="surface"/>
+    <text x="26" y="38" class="text" font-size="21" font-weight="800">Display rules</text>
+    <text x="26" y="63" class="small">How this replaces the current crowded rail.</text>
+
+    <g transform="translate(26 104)">
+      <text x="0" y="0" class="label">1. One primary verdict</text>
+      <text x="0" y="26" class="small">Avoid showing many equal-weight badges. The rail starts with the operational verdict.</text>
+    </g>
+    <g transform="translate(26 188)">
+      <text x="0" y="0" class="label">2. Blocker before details</text>
+      <text x="0" y="26" class="small">The system explains why the operator cannot act before exposing scan internals.</text>
+    </g>
+    <g transform="translate(26 272)">
+      <text x="0" y="0" class="label">3. Checklist maps to house rules</text>
+      <text x="0" y="26" class="small">The checklist mirrors ICT gating: 4H context, 15m confirmation, 5m execution, risk.</text>
+    </g>
+    <g transform="translate(26 356)">
+      <text x="0" y="0" class="label">4. Raw enums stay hidden</text>
+      <text x="0" y="26" class="small">Raw states like collect_more_evidence live in hover text or expanded details.</text>
+    </g>
+    <g transform="translate(26 440)">
+      <text x="0" y="0" class="label">5. Risk controls are separated</text>
+      <text x="0" y="26" class="small">Kill switch and pause controls should not be mixed with normal analysis cards.</text>
+    </g>
+
+    <g transform="translate(26 574)">
+      <rect width="320" height="128" rx="10" fill="#111b26" stroke="#2d3f4f"/>
+      <text x="18" y="28" class="label">Recommended state words</text>
+      <text x="18" y="56" class="small">Monitoring - Candidate - Plan ready</text>
+      <text x="18" y="80" class="small">Submitted - Working - Filled - Closed</text>
+      <text x="18" y="104" class="small">Allowed - Watching - Blocked</text>
+    </g>
+  </g>
+</svg>
