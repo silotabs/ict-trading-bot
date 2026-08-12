@@ -10,13 +10,13 @@ stack:
 	python paper_api/stackctl.py start
 
 web-dev:
-	cd web && pnpm dev
+	cd web && npm run dev
 
 web-test:
-	cd web && pnpm test
+	cd web && npm run test
 
 web-build:
-	cd web && pnpm build
+	cd web && npm run build
 
 clean:
 	find . -name .DS_Store -delete
