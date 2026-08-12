@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sqlite3
+import sys
 import threading
 import time
 import hmac
@@ -6915,8 +6916,26 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
         self._send_json(404, {"error": f"unknown route: {path}"})
 
 
+class TradingHTTPServer(ThreadingHTTPServer):
+    """ThreadingHTTPServer that silences benign client-disconnect noise.
+
+    A client that opens a TCP connection and then drops it without sending a
+    complete request (browser probe, health check, cancelled curl, port scan)
+    raises ConnectionResetError/ConnectionAbortedError/BrokenPipeError from
+    the per-connection worker thread. These are not actionable and are not
+    server faults, so they are suppressed here; every other exception still
+    gets the default traceback via the parent ``handle_error``.
+    """
+
+    def handle_error(self, request, client_address):
+        exc = sys.exc_info()[1]
+        if isinstance(exc, (ConnectionResetError, ConnectionAbortedError, BrokenPipeError)):
+            return
+        super().handle_error(request, client_address)
+
+
 def run():
-    server = ThreadingHTTPServer((HOST, PORT), TradingAPIHandler)
+    server = TradingHTTPServer((HOST, PORT), TradingAPIHandler)
     print(f"paper-trading-api listening on http://{HOST}:{PORT}")
     try:
         server.serve_forever()
