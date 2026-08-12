@@ -4,7 +4,7 @@ import sys
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -14,30 +14,32 @@ for path in (str(PAPER_API_DIR), str(REPO_ROOT)):
         sys.path.insert(0, path)
 
 import trading_store
+from shared_utils import SQLITE_BUSY_TIMEOUT_MS
 
 
 class PhaseFixSqliteBusyTimeoutTests(unittest.TestCase):
     def test_store_connect_uses_busy_timeout_and_wal_pragmas(self):
+        """A connection opened by the store must carry the canonical busy
+        timeout and WAL durability pragmas, regardless of which helper performs
+        the open. Validates behaviour on a real SQLite connection rather than
+        coupling to the constant's location or the internal connect call."""
         with TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "paper-trading.db"
-            fake_conn = MagicMock()
 
             with patch.object(trading_store.PaperTradeStore, "_init_db", return_value=None):
                 store = trading_store.PaperTradeStore(db_path)
 
-            with patch.object(trading_store.sqlite3, "connect", return_value=fake_conn) as connect_mock:
-                conn = store._connect()
+            conn = store._connect()
+            try:
+                busy_timeout = conn.execute("PRAGMA busy_timeout").fetchone()[0]
+                journal_mode = conn.execute("PRAGMA journal_mode").fetchone()[0]
+                synchronous = conn.execute("PRAGMA synchronous").fetchone()[0]
+            finally:
+                conn.close()
 
-        self.assertIs(conn, fake_conn)
-        connect_mock.assert_called_once_with(
-            db_path,
-            timeout=trading_store.SQLITE_BUSY_TIMEOUT_SECONDS,
-        )
-        fake_conn.execute.assert_any_call(
-            f"PRAGMA busy_timeout = {trading_store.SQLITE_BUSY_TIMEOUT_MS}"
-        )
-        fake_conn.execute.assert_any_call("PRAGMA journal_mode=WAL")
-        fake_conn.execute.assert_any_call("PRAGMA synchronous=NORMAL")
+        self.assertEqual(busy_timeout, SQLITE_BUSY_TIMEOUT_MS)
+        self.assertEqual(journal_mode.lower(), "wal")
+        self.assertEqual(synchronous, 1)  # synchronous=NORMAL
 
 
 if __name__ == "__main__":

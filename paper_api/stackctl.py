@@ -53,6 +53,9 @@ from concept_revision import (
 )
 from runtime_paths import default_db_path, default_stack_state_dir
 from shared_utils import clean_string as clean_text, parse_iso_datetime, utc_now_iso
+from shared_utils import age_seconds_from_iso as shared_age_seconds_from_iso
+from shared_utils import load_json_document as shared_load_json_document
+from shared_utils import open_sqlite_connection as shared_open_sqlite_connection
 from trading_store import PaperTradeStore
 
 
@@ -68,8 +71,6 @@ DEFAULT_STATE_DIR = default_stack_state_dir(prefer_existing=True)
 DEFAULT_ENV_FILE = (BASE_DIR.parent / ".env").expanduser()
 MANIFEST_NAME = "stack_state.json"
 STARTUP_GRACE_SECONDS = 90
-SQLITE_BUSY_TIMEOUT_SECONDS = 30.0
-SQLITE_BUSY_TIMEOUT_MS = int(SQLITE_BUSY_TIMEOUT_SECONDS * 1000)
 CONCEPT_REPLAY_BLOCKERS = ("clear_4h_bias", "direction", "liquidity_event", "mss", "displacement")
 CONCEPT_BLOCKER_LABELS = {
     "clear_4h_bias": "4H bias clarity",
@@ -107,10 +108,9 @@ def strip_legacy_compat_metrics(value):
 
 
 def sqlite_connect(path):
-    conn = sqlite3.connect(str(Path(path).expanduser()), timeout=SQLITE_BUSY_TIMEOUT_SECONDS)
-    conn.row_factory = sqlite3.Row
-    conn.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
-    return conn
+    # Delegate to the canonical shared connector. apply_wal_pragmas=False
+    # preserves this helper's original (no-WAL) behaviour for stackctl reads.
+    return shared_open_sqlite_connection(path, apply_wal_pragmas=False)
 
 
 def iso_is_older(left_raw, right_raw):
@@ -122,10 +122,9 @@ def iso_is_older(left_raw, right_raw):
 
 
 def iso_age_seconds(raw_value):
-    parsed = parse_iso_datetime(raw_value)
-    if parsed is None:
-        return None
-    return max(0.0, (datetime.now(timezone.utc) - parsed).total_seconds())
+    # Delegate to the canonical shared implementation (clamp_zero defaults
+    # to True there, matching this helper's original semantics).
+    return shared_age_seconds_from_iso(raw_value)
 
 
 def iso_within_seconds_after(value_raw, start_raw, seconds):
@@ -2080,42 +2079,9 @@ def env_bool(*names):
 
 
 def load_json_document(path, label):
-    if not path.exists():
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"{label} file not found: {path}"],
-            "data": None,
-        }
-    try:
-        data = json.loads(path.read_text())
-    except OSError as exc:
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"failed to read {label}: {exc}"],
-            "data": None,
-        }
-    except json.JSONDecodeError as exc:
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"invalid JSON in {label}: {exc.msg}"],
-            "data": None,
-        }
-    if not isinstance(data, dict):
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"{label} must be a JSON object"],
-            "data": None,
-        }
-    return {
-        "ok": True,
-        "path": str(path),
-        "errors": [],
-        "data": data,
-    }
+    # Positional-arg shim around the canonical shared implementation; the
+    # parsed object is returned under both the "data" and "document" keys.
+    return shared_load_json_document(path, label=label)
 
 
 def merge_nested_defaults(base, override):

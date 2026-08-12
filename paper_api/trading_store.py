@@ -9,7 +9,7 @@ from ict_engine.execution_state_machine import (
     normalize_execution_intent_state,
     transition_validation_error,
 )
-from shared_utils import clean_string, coerce_bool, utc_now_iso
+from shared_utils import clean_string, coerce_bool, open_sqlite_connection, utc_now_iso
 from trading_utils import (
     decimal_string,
     first_present,
@@ -19,8 +19,6 @@ from trading_utils import (
 
 
 SUPERVISOR_ACTIVE_PROPOSAL_STATUSES = {"ready_for_submission", "submitted_testnet"}
-SQLITE_BUSY_TIMEOUT_SECONDS = 30.0
-SQLITE_BUSY_TIMEOUT_MS = int(SQLITE_BUSY_TIMEOUT_SECONDS * 1000)
 
 
 class PaperTradeStore:
@@ -30,13 +28,7 @@ class PaperTradeStore:
         self._init_db()
 
     def _connect(self):
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self.db_path, timeout=SQLITE_BUSY_TIMEOUT_SECONDS)
-        conn.row_factory = sqlite3.Row
-        conn.execute(f"PRAGMA busy_timeout = {SQLITE_BUSY_TIMEOUT_MS}")
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        return conn
+        return open_sqlite_connection(self.db_path)
 
     def _next_id(self, conn, table_name, pk_column):
         return conn.execute(

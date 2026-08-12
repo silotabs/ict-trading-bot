@@ -1,50 +1,13 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
+from shared_utils import load_json_document
 
 
 def _load_json_document(path, *, label):
-    path = Path(path)
-    if not path.exists():
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"{label} file not found: {path}"],
-            "document": None,
-        }
-
-    try:
-        raw = json.loads(path.read_text())
-    except OSError as exc:
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"failed to read {label}: {exc}"],
-            "document": None,
-        }
-    except json.JSONDecodeError as exc:
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"invalid JSON in {label}: {exc.msg}"],
-            "document": None,
-        }
-
-    if not isinstance(raw, dict):
-        return {
-            "ok": False,
-            "path": str(path),
-            "errors": [f"{label} must be a JSON object"],
-            "document": None,
-        }
-
-    return {
-        "ok": True,
-        "path": str(path),
-        "errors": [],
-        "document": raw,
-    }
+    # Thin shim preserved so the many internal call sites keep working
+    # unchanged. The canonical implementation lives in shared_utils and
+    # exposes the parsed document under both the "document" and "data" keys.
+    return load_json_document(path, label=label)
 
 
 def load_execution_spec(path, *, clean_string):

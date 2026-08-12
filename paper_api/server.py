@@ -47,15 +47,15 @@ from concept_revision import (
 )
 from ict_engine.context import summarize_context_state, summarize_narrative_state as summarize_narrative_engine
 from ict_engine.drt import (
-    classify_range_location as classify_range_location_engine,
+    classify_range_location,
     detect_4h_liquidity_event as detect_4h_liquidity_event_engine,
-    infer_4h_bias as infer_4h_bias_engine,
-    summarize_4h_drt_state as summarize_4h_drt_state_engine,
-    summarize_dealing_range as summarize_dealing_range_engine,
+    infer_4h_bias,
+    summarize_4h_drt_state,
+    summarize_dealing_range,
 )
 from ict_engine.execution import (
     detect_recent_displacement_5m as detect_recent_displacement_5m_engine,
-    detect_recent_fvg_5m as detect_recent_fvg_5m_engine,
+    detect_recent_fvg_5m,
     detect_recent_mss_15m as detect_recent_mss_15m_engine,
     detect_recent_mss_5m as detect_recent_mss_5m_engine,
     detect_recent_sweep_15m as detect_recent_sweep_15m_engine,
@@ -75,8 +75,8 @@ from ict_engine.evaluation import (
 )
 from ict_engine.liquidity import build_liquidity_map
 from ict_engine.opportunity import summarize_opportunity_state
-from ict_engine.pd_arrays import summarize_execution_pd_arrays as summarize_execution_pd_arrays_engine
-from ict_engine.risk_controls import evaluate_execution_risk as evaluate_execution_risk_engine
+from ict_engine.pd_arrays import summarize_execution_pd_arrays
+from ict_engine.risk_controls import evaluate_execution_risk
 from ict_engine.signal_trace import build_signal_trace as build_signal_trace_engine
 from ict_engine.visual import derive_visual_analysis_state
 from runtime_config import (
@@ -120,7 +120,7 @@ from bybit_client import (
 )
 from runtime_paths import STACK_MANIFEST_NAME, default_db_path, default_stack_state_dir
 from runtime_repositories import build_runtime_repositories
-from shared_utils import clean_string, coerce_bool, parse_iso_datetime, utc_now_iso
+from shared_utils import age_seconds_from_iso, clean_string, coerce_bool, parse_iso_datetime, utc_now_iso
 import trading_store as trading_store_module
 from trading_store import PaperTradeStore
 from trading_utils import (
@@ -489,21 +489,6 @@ OPERATIONS_DEFAULT_THRESHOLDS = {
     "auto_execution_stale_after_seconds": 180,
     "trade_management_stale_after_seconds": 180,
 }
-def age_seconds_from_iso(value, now_dt=None, clamp_zero=True):
-    parsed = parse_iso_datetime(value)
-    if parsed is None:
-        return None
-    reference = now_dt if isinstance(now_dt, datetime) else datetime.now(timezone.utc)
-    if reference.tzinfo is None:
-        reference = reference.replace(tzinfo=timezone.utc)
-    delta = (reference.astimezone(timezone.utc) - parsed).total_seconds()
-    if clamp_zero:
-        return max(0.0, delta)
-    return delta
-
-
-
-
 
 
 def resolve_control_state(control_key):
@@ -1497,31 +1482,6 @@ def evaluate_payload(payload):
     )
 
 
-def evaluate_execution_risk(
-    *,
-    store,
-    policy,
-    scan_result,
-    intent_record,
-    runtime_key=None,
-    now_at=None,
-    control_states=None,
-    runtime_state=None,
-    order_preview=None,
-):
-    return evaluate_execution_risk_engine(
-        store=store,
-        policy=policy,
-        scan_result=scan_result,
-        intent_record=intent_record,
-        runtime_key=runtime_key,
-        now_at=now_at,
-        control_states=control_states,
-        runtime_state=runtime_state,
-        order_preview=order_preview,
-    )
-
-
 def create_signal_trace(
     *,
     source_path,
@@ -1690,25 +1650,9 @@ def closed_candles(candles, interval_code):
     return closed_candles_at(candles, interval_code, reference_ms=None)
 
 
-def summarize_dealing_range(candles, lookback=20):
-    return summarize_dealing_range_engine(candles, lookback=lookback)
-
-
-def classify_range_location(price, range_summary, tolerance_fraction=0.05):
-    return classify_range_location_engine(price, range_summary, tolerance_fraction=tolerance_fraction)
-
-
 def detect_4h_liquidity_event(candles, lookback=20):
     prior_drt = summarize_dealing_range(candles[:-1], lookback=lookback)
     return detect_4h_liquidity_event_engine(candles, drt_summary=prior_drt)
-
-
-def summarize_4h_drt_state(candles, lookback=20):
-    return summarize_4h_drt_state_engine(candles, lookback=lookback)
-
-
-def infer_4h_bias(candles):
-    return infer_4h_bias_engine(candles)
 
 
 def detect_recent_sweep_15m(
@@ -1782,60 +1726,6 @@ def detect_recent_displacement_5m(candles, after_at=None, expected_direction=Non
         expected_direction=expected_direction,
         config=HEURISTIC_RULES["displacement_5m"],
     )
-
-
-def detect_recent_fvg_5m(candles, after_at=None, expected_direction=None):
-    return detect_recent_fvg_5m_engine(
-        candles,
-        after_at=after_at,
-        expected_direction=expected_direction,
-    )
-
-
-def summarize_execution_pd_arrays(range_summary, execution_candles, fvg_summary):
-    return summarize_execution_pd_arrays_engine(range_summary, execution_candles, fvg_summary)
-
-
-def summarize_narrative_state(bias_summary, drt_summary, mss_summary, pd_arrays_summary):
-    bias_state = clean_string(bias_summary.get("bias")) or "neutral"
-    liquidity_event = (
-        drt_summary.get("liquidity_event") if isinstance(drt_summary, dict) else {}
-    )
-    event_hint = clean_string(liquidity_event.get("narrative_hint")) or ""
-    range_summary = drt_summary.get("range") if isinstance(drt_summary, dict) else {}
-    location = clean_string(first_present(range_summary, ["location"])) or "unknown"
-    array_lead = pd_arrays_summary.get("lead") if isinstance(pd_arrays_summary, dict) else None
-    array_support = clean_string(array_lead.get("respect_state")) if isinstance(array_lead, dict) else ""
-
-    state = "unclear"
-    reason = "narrative is not clear yet"
-    if event_hint == "reversal" and bias_state in {"bullish", "bearish"}:
-        state = "reversal"
-        reason = clean_string(liquidity_event.get("reason")) or "4H liquidity interaction reads as rejection and reversal"
-    elif event_hint == "continuation" and bias_state in {"bullish", "bearish"}:
-        state = "continuation"
-        reason = clean_string(liquidity_event.get("reason")) or "4H liquidity interaction reads as acceptance and continuation"
-    elif location == "equilibrium":
-        state = "measuring"
-        reason = "price is still around equilibrium and likely rebalancing inside the dealing range"
-
-    if clean_string(mss_summary.get("state")) in {"bullish_mss", "bearish_mss"} and state == "unclear":
-        state = "developing"
-        reason = "15m MSS is present, but the higher-timeframe narrative is still incomplete"
-
-    if array_support == "disrespected":
-        return {
-            "state": state,
-            "array_support": "failing",
-            "reason": f"{reason}; the current execution array is already being disrespected",
-        }
-    if array_support == "respected":
-        return {
-            "state": state,
-            "array_support": "supportive",
-            "reason": f"{reason}; the current execution array is being respected",
-        }
-    return {"state": state, "array_support": "unknown", "reason": reason}
 
 
 def detect_chase_state(direction, fvg_state, current_price):
@@ -4831,6 +4721,49 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_detail(self, path, getter, label):
+        """Handle a ``/prefix/{id}`` detail route: fetch one record by the path
+        suffix and respond ``404`` if missing, otherwise ``200`` with the record.
+
+        ``getter`` is a callable taking the id and returning the record or None.
+        """
+        key = path.split("/")[-1]
+        record = getter(key)
+        if record is None:
+            self._send_json(404, {"error": f"{label} {key} not found"})
+            return
+        self._send_json(200, record)
+
+    def _send_filtered_events(self, params, lister, filter_keys):
+        """Handle a filtered event-list route: coerce ``limit`` from query
+        params, extract each named filter (passing ``value or None``), and
+        respond ``200`` with ``{"items": lister(limit=limit, **filters)}``.
+
+        ``lister`` is a store method accepting ``limit`` plus the filter keys
+        as keyword arguments; ``filter_keys`` is the per-route set of filters.
+        """
+        limit = coerce_query_limit(params.get("limit", [None])[0], 100)
+        filters = {
+            key: clean_string(params.get(key, [""])[0]) or None
+            for key in filter_keys
+        }
+        self._send_json(200, {"items": lister(limit=limit, **filters)})
+
+    def _send_runtime(self, params, getter, lister, label):
+        """Handle a ``/prefix/runtime`` dual-mode route: if a ``runtime_key``
+        query param is present, return that single record (``404`` if missing);
+        otherwise return the full runtime list as ``{"items": ...}``.
+        """
+        runtime_key = clean_string(params.get("runtime_key", [""])[0])
+        if runtime_key:
+            record = getter(runtime_key)
+            if record is None:
+                self._send_json(404, {"error": f"{label} runtime {runtime_key} not found"})
+                return
+            self._send_json(200, record)
+            return
+        self._send_json(200, {"items": lister()})
+
     def _send_sse_headers(self):
         self.send_response(200)
         self._send_cors_headers()
@@ -5302,113 +5235,35 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/supervisor/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_supervisor_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"supervisor runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_supervisor_runtime()})
+            self._send_runtime(params, self.store.get_supervisor_runtime, self.store.list_supervisor_runtime, "supervisor")
             return
 
         if path.startswith("/v1/supervisor/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_supervisor_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"supervisor runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_supervisor_runtime, "supervisor runtime")
             return
 
-        if path == "/v1/supervisor/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            proposal_id = clean_string(params.get("proposal_id", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_supervisor_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        proposal_id=proposal_id or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/supervisor/events":
+                self._send_filtered_events(params, self.store.list_supervisor_events, ["runtime_key", "proposal_id", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/supervisor/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_supervisor_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"supervisor event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_supervisor_event, "supervisor event")
             return
 
         if path == "/v1/private-stream/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_private_stream_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"private stream runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_private_stream_runtime()})
+            self._send_runtime(params, self.store.get_private_stream_runtime, self.store.list_private_stream_runtime, "private stream")
             return
 
         if path.startswith("/v1/private-stream/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_private_stream_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"private stream runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_private_stream_runtime, "private stream runtime")
             return
 
-        if path == "/v1/private-stream/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            proposal_id = clean_string(params.get("proposal_id", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_private_stream_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        proposal_id=proposal_id or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/private-stream/events":
+                self._send_filtered_events(params, self.store.list_private_stream_events, ["runtime_key", "proposal_id", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/private-stream/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_private_stream_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"private stream event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_private_stream_event, "private stream event")
             return
 
         if path == "/v1/operations/status":
@@ -5432,58 +5287,19 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/operations/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_operations_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"operations runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_operations_runtime()})
+            self._send_runtime(params, self.store.get_operations_runtime, self.store.list_operations_runtime, "operations")
             return
 
         if path.startswith("/v1/operations/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_operations_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"operations runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_operations_runtime, "operations runtime")
             return
 
-        if path == "/v1/operations/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            component_key = clean_string(params.get("component_key", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_operations_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        component_key=component_key or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/operations/events":
+                self._send_filtered_events(params, self.store.list_operations_events, ["runtime_key", "component_key", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/operations/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_operations_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"operations event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_operations_event, "operations event")
             return
 
         if path == "/v1/auto-execution/policy":
@@ -5493,60 +5309,19 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/auto-execution/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_auto_execution_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"auto execution runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_auto_execution_runtime()})
+            self._send_runtime(params, self.store.get_auto_execution_runtime, self.store.list_auto_execution_runtime, "auto execution")
             return
 
         if path.startswith("/v1/auto-execution/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_auto_execution_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"auto execution runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_auto_execution_runtime, "auto execution runtime")
             return
 
-        if path == "/v1/auto-execution/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            instrument = clean_string(params.get("instrument", [""])[0])
-            proposal_id = clean_string(params.get("proposal_id", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_auto_execution_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        instrument=instrument or None,
-                        proposal_id=proposal_id or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/auto-execution/events":
+                self._send_filtered_events(params, self.store.list_auto_execution_events, ["runtime_key", "instrument", "proposal_id", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/auto-execution/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_auto_execution_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"auto execution event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_auto_execution_event, "auto execution event")
             return
 
         if path == "/v1/trade-management/policy":
@@ -5556,115 +5331,35 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/trade-management/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_trade_management_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"trade management runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_trade_management_runtime()})
+            self._send_runtime(params, self.store.get_trade_management_runtime, self.store.list_trade_management_runtime, "trade management")
             return
 
         if path.startswith("/v1/trade-management/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_trade_management_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"trade management runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_trade_management_runtime, "trade management runtime")
             return
 
-        if path == "/v1/trade-management/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            proposal_id = clean_string(params.get("proposal_id", [""])[0])
-            symbol = clean_string(params.get("symbol", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_trade_management_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        proposal_id=proposal_id or None,
-                        symbol=symbol or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/trade-management/events":
+                self._send_filtered_events(params, self.store.list_trade_management_events, ["runtime_key", "proposal_id", "symbol", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/trade-management/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_trade_management_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"trade management event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_trade_management_event, "trade management event")
             return
 
         if path == "/v1/concept/runtime":
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            if runtime_key:
-                record = self.store.get_concept_runtime(runtime_key)
-                if record is None:
-                    self._send_json(404, {"error": f"concept runtime {runtime_key} not found"})
-                    return
-                self._send_json(200, record)
-                return
-            self._send_json(200, {"items": self.store.list_concept_runtime()})
+            self._send_runtime(params, self.store.get_concept_runtime, self.store.list_concept_runtime, "concept")
             return
 
         if path.startswith("/v1/concept/runtime/"):
-            runtime_key = path.split("/")[-1]
-            record = self.store.get_concept_runtime(runtime_key)
-            if record is None:
-                self._send_json(404, {"error": f"concept runtime {runtime_key} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_concept_runtime, "concept runtime")
             return
 
-        if path == "/v1/concept/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            runtime_key = clean_string(params.get("runtime_key", [""])[0])
-            concept_id = clean_string(params.get("concept_id", [""])[0])
-            severity = clean_string(params.get("severity", [""])[0])
-            event_type = clean_string(params.get("event_type", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_concept_events(
-                        limit=limit,
-                        runtime_key=runtime_key or None,
-                        concept_id=concept_id or None,
-                        severity=severity or None,
-                        event_type=event_type or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/concept/events":
+                self._send_filtered_events(params, self.store.list_concept_events, ["runtime_key", "concept_id", "severity", "event_type"])
+                return
 
         if path.startswith("/v1/concept/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_concept_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"concept event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_concept_event, "concept event")
             return
 
         if path == "/v1/concept/brief":
@@ -5883,12 +5578,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/concept/reviews":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 100)
             concept_id = clean_string(params.get("concept_id", [""])[0])
             source = clean_string(params.get("source", [""])[0])
             review_kind = clean_string(params.get("review_kind", [""])[0])
@@ -5906,21 +5596,11 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/concept/reviews/"):
-            review_id = path.split("/")[-1]
-            record = self.store.get_concept_review(review_id)
-            if record is None:
-                self._send_json(404, {"error": f"concept review {review_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_concept_review, "concept review")
             return
 
         if path == "/v1/concept/revisions":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 100)
             concept_id = clean_string(params.get("concept_id", [""])[0])
             source = clean_string(params.get("source", [""])[0])
             focus = clean_string(params.get("focus", [""])[0])
@@ -5938,12 +5618,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/concept/revisions/summary":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 100)
             concept_id = clean_string(params.get("concept_id", [""])[0])
             review_summaries = self.store.list_concept_reviews(limit=limit, concept_id=concept_id or None)
             review_records = [
@@ -5978,12 +5653,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/concept/revisions/"):
-            revision_id = path.split("/")[-1]
-            record = self.store.get_concept_revision(revision_id)
-            if record is None:
-                self._send_json(404, {"error": f"concept revision {revision_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_concept_revision, "concept revision")
             return
 
         if path == "/v1/control/state":
@@ -6034,32 +5704,12 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             self._send_json(200, record)
             return
 
-        if path == "/v1/control/events":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
-            control_key = clean_string(params.get("control_key", [""])[0])
-            self._send_json(
-                200,
-                {
-                    "items": self.store.list_control_events(
-                        limit=limit,
-                        control_key=control_key or None,
-                    )
-                },
-            )
-            return
+            if path == "/v1/control/events":
+                self._send_filtered_events(params, self.store.list_control_events, ["control_key"])
+                return
 
         if path.startswith("/v1/control/events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_control_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"control event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_control_event, "control event")
             return
 
         if path == "/v1/stats":
@@ -6080,12 +5730,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/scan-history":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 100)
 
             instrument = normalize_instrument(params.get("instrument", [""])[0])
             source = clean_string(params.get("source", [""])[0])
@@ -6109,21 +5754,11 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/scan-history/"):
-            scan_id = path.split("/")[-1]
-            record = self.store.get_scan_history_entry(scan_id)
-            if record is None:
-                self._send_json(404, {"error": f"scan history {scan_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_scan_history_entry, "scan history")
             return
 
         if path == "/v1/signal-traces":
-            limit = 100
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 100)
 
             symbol = normalize_instrument(params.get("symbol", [""])[0])
             source_path = clean_string(params.get("source_path", [""])[0])
@@ -6173,12 +5808,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/v1/shadow-review/summary":
-            limit = 200
-            if "limit" in params:
-                try:
-                    limit = max(1, min(1000, int(params["limit"][0])))
-                except ValueError:
-                    pass
+            limit = coerce_query_limit(params.get("limit", [None])[0], 200)
             cluster_limit = 10
             if "cluster_limit" in params:
                 try:
@@ -6216,12 +5846,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/signal-traces/"):
-            trace_id = path.split("/")[-1]
-            record = get_runtime_repositories(self.store).signal_traces.get(trace_id)
-            if record is None:
-                self._send_json(404, {"error": f"signal trace {trace_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, get_runtime_repositories(self.store).signal_traces.get, "signal trace")
             return
 
         if path == "/v1/market/bybit/klines":
@@ -6330,12 +5955,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/paper-trades/"):
-            journal_id = path.split("/")[-1]
-            record = self.store.get_entry(journal_id)
-            if record is None:
-                self._send_json(404, {"error": f"paper trade {journal_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_entry, "paper trade")
             return
 
         if path == "/v1/webhooks":
@@ -6349,12 +5969,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/webhooks/"):
-            webhook_id = path.split("/")[-1]
-            record = self.store.get_webhook_event(webhook_id)
-            if record is None:
-                self._send_json(404, {"error": f"webhook {webhook_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_webhook_event, "webhook")
             return
 
         if path == "/v1/order-proposals":
@@ -6441,21 +6056,11 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/execution-intents/"):
-            intent_id = path.split("/")[-1]
-            record = get_runtime_repositories(self.store).execution_intents.get(intent_id)
-            if record is None:
-                self._send_json(404, {"error": f"execution intent {intent_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, get_runtime_repositories(self.store).execution_intents.get, "execution intent")
             return
 
         if path.startswith("/v1/execution-risk-checks/"):
-            risk_check_id = path.split("/")[-1]
-            record = get_runtime_repositories(self.store).execution_risk_checks.get(risk_check_id)
-            if record is None:
-                self._send_json(404, {"error": f"execution risk check {risk_check_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, get_runtime_repositories(self.store).execution_risk_checks.get, "execution risk check")
             return
 
         if path == "/v1/execution-intent-events":
@@ -6480,12 +6085,7 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/execution-state/"):
-            proposal_id = path.split("/")[-1]
-            record = self.store.get_execution_state(proposal_id)
-            if record is None:
-                self._send_json(404, {"error": f"execution state for {proposal_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_execution_state, "execution state for")
             return
 
         if path == "/v1/execution-actions":
@@ -6512,30 +6112,15 @@ class TradingAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path.startswith("/v1/execution-intent-events/"):
-            event_id = path.split("/")[-1]
-            record = self.store.get_execution_intent_event(event_id)
-            if record is None:
-                self._send_json(404, {"error": f"execution intent event {event_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_execution_intent_event, "execution intent event")
             return
 
         if path.startswith("/v1/execution-actions/"):
-            action_id = path.split("/")[-1]
-            record = self.store.get_execution_action(action_id)
-            if record is None:
-                self._send_json(404, {"error": f"execution action {action_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_execution_action, "execution action")
             return
 
         if path.startswith("/v1/order-proposals/"):
-            proposal_id = path.split("/")[-1]
-            record = self.store.get_order_proposal(proposal_id)
-            if record is None:
-                self._send_json(404, {"error": f"order proposal {proposal_id} not found"})
-                return
-            self._send_json(200, record)
+            self._send_detail(path, self.store.get_order_proposal, "order proposal")
             return
 
         self._send_json(404, {"error": f"unknown route: {path}"})

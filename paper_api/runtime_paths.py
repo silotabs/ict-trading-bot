@@ -6,6 +6,8 @@ import sqlite3
 import sys
 from pathlib import Path
 
+from shared_utils import open_sqlite_connection
+
 
 APP_DIR_NAME = "trading"
 DB_FILE_NAME = "paper-trading.db"
@@ -42,7 +44,7 @@ def _db_contains_runtime_rows(path):
     if not path.exists():
         return False
     try:
-        conn = sqlite3.connect(path)
+        conn = open_sqlite_connection(path, read_only=True)
         try:
             tables = {
                 row[0]
